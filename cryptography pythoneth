@@ -1,0 +1,44 @@
+from ethereum.crypto import (
+    random,
+    scrypt,
+    pbkdf2,
+    keccak,
+    secp256k1
+)
+from ethereum.crypto.hash import keccak256, sha256
+
+# Step 1: Generate a 32-byte private key using one of the Pbkdf2, Scrypt, or Random submodules
+# We'll use random here for simplicity
+private_key = random.get_random_bytes(32)
+
+# Step 2: Calculate the SHA256 hash of the message "Web3 is Awesome"
+message = "Web3 is Awesome"
+message_hash = sha256(message.encode())
+
+# Step 3: Compute the public key using secp256k1 from the private key generated in Step 1
+public_key = secp256k1.privtopub(private_key)
+
+# Step 4: Use Keccak256 to generate the signer’s Ethereum address from the public key
+eth_address = keccak256(public_key[1:])[-20:]  # last 20 bytes of the keccak256 hash of the public key
+
+# Step 5: Use the sign function of secp256k1 and the private key to calculate the signature of the message hash
+signature = secp256k1.sign(message_hash, private_key)
+
+# Step 6: Use the verify function of secp256k1 and public key to verify the signature
+is_valid_signature = secp256k1.verify(message_hash, signature, public_key)
+
+# Step 7: Use the recover function of secp256k1, message hash, signature, and recovery bit (1) to recover the public key
+recovered_public_key = secp256k1.recover(message_hash, signature, 1)
+
+# Step 8: Use the recovered public key to generate the signer’s Ethereum address
+recovered_eth_address = keccak256(recovered_public_key[1:])[-20:]  # last 20 bytes of the keccak256 hash
+
+# Print results
+print("Private Key:", private_key.hex())
+print("Public Key:", public_key.hex())
+print("Ethereum Address:", eth_address.hex())
+print("Message Hash:", message_hash.hex())
+print("Signature:", signature.hex())
+print("Is Valid Signature:", is_valid_signature)
+print("Recovered Public Key:", recovered_public_key.hex())
+print("Recovered Ethereum Address:", recovered_eth_address.hex())
